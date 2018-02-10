@@ -61,7 +61,7 @@ func grepLog(conn net.Conn) {
 
 	var results string
 	// exec the grep
-	results = utils.ExecGrep(strs, utils.LOG_FILE, localIp)
+	results = utils.ExecGrep(strs, localIp)
 	
 	// convert result to bytes and send back to client
 	sendBuf := make([]byte, len(results))

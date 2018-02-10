@@ -10,17 +10,17 @@ import (
 	"time"
 )
 
-const LOG_FILE = "logfile.log"
+const LOG_FILE = "../logs/logfile.log"
 
 /*
  * Executes grep in unix shell
  */
-func ExecGrep(cmdArgs []string, logName string, machineName string) string {
+func ExecGrep(cmdArgs []string, machineName string) string {
 	
-	cmdArgs = append(cmdArgs, logName) 
+	cmdArgs = append(cmdArgs, LOG_FILE) 
 	fmt.Println("Complete String: ", cmdArgs)
 	
-	cmdOut, cmdErr := exec.Command("grep", cmdArgs...).Output()
+	cmdOut, cmdErr := exec.Command("grep", cmdArgs...).CombinedOutput()
 
 	results := ""
 	//check if there is any error in our grep
@@ -30,7 +30,7 @@ func ExecGrep(cmdArgs []string, logName string, machineName string) string {
 	}
 
 	if len(cmdOut) > 0 {
-		results = machineName + "-" + logName + "\n" + string(cmdOut)
+		results = machineName + "\n" + string(cmdOut)
 	} else {
 		results = "No matching patterns found in " + machineName
 	}
@@ -52,7 +52,7 @@ func SendToServer(ipAddr string, message []string, c chan string) {
 	
 	// convert string array to bytes
     buf := &bytes.Buffer{}
-    gob.NewEncoder(buf).Encode(message[1:])
+    gob.NewEncoder(buf).Encode(message[:])
     messageBytes := buf.Bytes()  
     // write bytes to the socket
 	_, err = conn.Write(messageBytes)

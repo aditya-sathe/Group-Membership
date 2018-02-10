@@ -1,4 +1,4 @@
-package groupmain
+package main
 
 import (
 	"bufio"
@@ -361,18 +361,16 @@ func grepClient(reader *bufio.Reader){
 	
 	fmt.Println("Usage: -options keywordToSearch")
 	fmt.Println("-options: available in linux grep command")
+	
 	input, _ := reader.ReadString('\n')
-	
-	
-	c := make(chan string)
-
+	input = strings.TrimSuffix(input, "\n")
 	serverInput := strings.Split(input, " ") 
-
+	c := make(chan string)
 	// Send data to every server in membershipList
 	for _, element := range membershipList {
 		localip, _, _ := net.ParseCIDR(element.Host)	
 		fmt.Println("ParseCIDR: " , localip.String()) 
-		go utils.SendToServer(localip.String(), serverInput, c)
+		go utils.SendToServer(localip.String()+":"+grepserver.PORT, serverInput, c)
 	}
 
 	// Print results from server

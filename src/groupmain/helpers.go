@@ -1,4 +1,4 @@
-package groupmain
+package main
 
 import (
 	"log"
