@@ -7,6 +7,7 @@ import (
 	"os"
 	"strings"
 	"time"
+	"path/filepath"
 	"utils"
 )
 
@@ -108,13 +109,15 @@ func initializeVars() {
 	timers[1].Stop()
 
 	rand.Seed(time.Now().UTC().UnixNano())
+	
+	absPath, _ := filepath.Abs(utils.LOG_FILE)
 
 	logfile_exists := 1
-	if _, err := os.Stat(utils.LOG_FILE); os.IsNotExist(err) {
+	if _, err := os.Stat(absPath); os.IsNotExist(err) {
 		logfile_exists = 0
 	}
 
-	logfile, _ := os.OpenFile(utils.LOG_FILE, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
+	logfile, _ := os.OpenFile(absPath, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
 	errlog = log.New(logfile, "ERROR: ", log.Ldate|log.Ltime|log.Lshortfile)
 	infolog = log.New(logfile, "INFO: ", log.Ldate|log.Ltime)
 	joinlog = log.New(logfile, "JOINING: ", log.Ldate|log.Ltime)

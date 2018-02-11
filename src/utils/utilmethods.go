@@ -8,16 +8,19 @@ import (
 	"net"
 	"encoding/gob"
 	"time"
+	"path/filepath"
 )
 
 const LOG_FILE = "../logs/logfile.log"
 
+const LOG_FILE_GREP = "src/logs/logfile.log"
 /*
  * Executes grep in unix shell
  */
 func ExecGrep(cmdArgs []string, machineName string) string {
 	
-	cmdArgs = append(cmdArgs, LOG_FILE) 
+	absPath, _ := filepath.Abs(LOG_FILE_GREP)
+	cmdArgs = append(cmdArgs, absPath) 
 	fmt.Println("Complete String: ", cmdArgs)
 	
 	cmdOut, cmdErr := exec.Command("grep", cmdArgs...).CombinedOutput()
@@ -30,7 +33,7 @@ func ExecGrep(cmdArgs []string, machineName string) string {
 	}
 
 	if len(cmdOut) > 0 {
-		results = machineName + "\n" + string(cmdOut)
+		results = "Results from " + machineName + "------------------------------------ " + "\n" + string(cmdOut)
 	} else {
 		results = "No matching patterns found in " + machineName
 	}

@@ -92,7 +92,7 @@ type member struct {
 func main() {
 	fmt.Println("Harambe")
 	initializeVars()
-
+	
 	//start servers to receive connections for messages and membershipList
 	//updates from the introducer when new VM's join
 	go messageServer()
@@ -318,6 +318,7 @@ func takeUserInput(reader *bufio.Reader){
 		fmt.Println("3 -> Join group")
 		fmt.Println("4 -> Leave group")
 		fmt.Println("5 -> Grep node logs\n")
+		fmt.Println("Enter option: ")
 		input, _ := reader.ReadString('\n')
 		switch input {
 		case "1\n":
@@ -361,7 +362,7 @@ func grepClient(reader *bufio.Reader){
 	
 	fmt.Println("Usage: -options keywordToSearch")
 	fmt.Println("-options: available in linux grep command")
-	
+	fmt.Println("Enter: ")
 	input, _ := reader.ReadString('\n')
 	input = strings.TrimSuffix(input, "\n")
 	serverInput := strings.Split(input, " ") 
