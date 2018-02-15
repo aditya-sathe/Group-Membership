@@ -11,8 +11,6 @@ import (
 	"path/filepath"
 )
 
-const LOG_FILE = "../logs/logfile.log"
-
 const LOG_FILE_GREP = "src/logs/logfile.log"
 /*
  * Executes grep in unix shell

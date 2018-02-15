@@ -22,11 +22,9 @@ func StartGrepServer() {
 	listener, err := net.Listen("tcp", ":" + PORT)
 	
 	if err != nil {
-		println("error listening:", err.Error())
+		fmt.Println("error listening:", err.Error())
 		os.Exit(1)
 	}
-	
-	fmt.Println("Logging server listening on port :" + PORT)
 
 	localIp = utils.GetLocalIP()
 	
@@ -57,7 +55,6 @@ func grepLog(conn net.Conn) {
 	// convert bytes to string
 	strs := []string{}
     gob.NewDecoder(bytes.NewReader(recvBuf)).Decode(&strs)
-    fmt.Println("Received String: ", strs)
 
 	var results string
 	// exec the grep

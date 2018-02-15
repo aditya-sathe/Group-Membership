@@ -9,6 +9,7 @@ import (
 	"time"
 	"path/filepath"
 	"utils"
+	"fmt"
 )
 
 //Initialize membershipList with current time and local IP
@@ -110,8 +111,9 @@ func initializeVars() {
 
 	rand.Seed(time.Now().UTC().UnixNano())
 	
-	absPath, _ := filepath.Abs(utils.LOG_FILE)
-
+	absPath, _ := filepath.Abs(utils.LOG_FILE_GREP)
+	fmt.Println("Log File path: " + absPath)
+	
 	logfile_exists := 1
 	if _, err := os.Stat(absPath); os.IsNotExist(err) {
 		logfile_exists = 0
