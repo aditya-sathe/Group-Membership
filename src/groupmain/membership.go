@@ -340,9 +340,15 @@ func resetCorrespondingTimers() {
 	resetTimerFlags[0] = 1
 	resetTimerFlags[1] = 1
 	resetTimerFlags[2] = 1
-	timers[0].Reset(0)
-	timers[1].Reset(0)
-	timers[2].Reset(0)
+	if(timers[0] != nil){
+	 timers[0].Reset(0)
+	}
+	if(timers[1] != nil){
+	 timers[1].Reset(0)
+	}
+	if(timers[2] != nil){
+	 timers[2].Reset(0)
+	}
 }
 
 func getIx() int {
