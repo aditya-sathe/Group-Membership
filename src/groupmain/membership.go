@@ -134,7 +134,7 @@ func grepClient(reader *bufio.Reader) {
 	input = strings.TrimSuffix(input, "\n")
 	serverInput := strings.Split(input, " ")
 	// Send data to every server in membershipList
-	membersToGrep := []string{}
+	membersToGrep := make([]string, 0)
 	for i, element := range membershipGroup {
 	  membersToGrep[i]= element.Host+":"+grepserver.PORT
 	}
