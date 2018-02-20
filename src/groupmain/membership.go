@@ -180,7 +180,7 @@ func listenMessages() {
 				membershipGroup = append(membershipGroup, node)
 				mutex.Unlock()
 			}
-			broadcastGroup()
+			broadcastGroup(node)
 		case "SYN":
 			respondAck(pkt.Host)
 		case "ACK":
@@ -232,7 +232,11 @@ func listenGateway() {
 
 		mutex.Lock()
 		resetCorrespondingTimers()
-		membershipGroup = list
+		if(len(list)==1){
+			membershipGroup = append(membershipGroup, list[0])
+		}else{
+			membershipGroup = list		
+		}
 		mutex.Unlock()
 
 		var N = len(list) - 1
@@ -462,12 +466,23 @@ func spreadGroup(msg message) {
 /*
  * This function is used by the GATEWAY to send an updated membershiplist after appending the new joinee in to the list.Port Number used is 5001
  */
-func broadcastGroup() {
-	var buf bytes.Buffer
-	if err := gob.NewEncoder(&buf).Encode(membershipGroup); err != nil {
+func broadcastGroup(node member) {
+	var compbuf bytes.Buffer
+	var nodebuf bytes.Buffer
+	
+	memberToAdd := make([]member,1)
+	memberToAdd = append(memberToAdd,node)
+	
+	if err := gob.NewEncoder(&nodebuf).Encode(memberToAdd); err != nil {
+		fmt.Println("BroadcastGroup: not able to encode new node")
+		errlog.Println(err)
+	}
+		
+	if err := gob.NewEncoder(&compbuf).Encode(membershipGroup); err != nil {
 		fmt.Println("BroadcastGroup: not able to encode")
 		errlog.Println(err)
 	}
+	
 	for ix, element := range membershipGroup {
 		if element.Host != currHost {
 
@@ -488,8 +503,12 @@ func broadcastGroup() {
 				fmt.Println("BroadcastGroup: not able to dial")
 				errlog.Println(err)
 			}
-
-			_, err = conn.Write(buf.Bytes())
+			
+			if(element.Host == node.Host){
+				_, err = conn.Write(compbuf.Bytes())
+			}else{
+				_, err = conn.Write(nodebuf.Bytes())
+			}	
 			if err != nil {
 				fmt.Println("BroadcastGroup: not able to write to connection")
 				errlog.Println(err)
