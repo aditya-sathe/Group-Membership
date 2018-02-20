@@ -133,17 +133,16 @@ func grepClient(reader *bufio.Reader) {
 	input, _ := reader.ReadString('\n')
 	input = strings.TrimSuffix(input, "\n")
 	serverInput := strings.Split(input, " ")
-	c := make(chan string)
 	// Send data to every server in membershipList
-	for _, element := range membershipGroup {
-		go utils.SendToServer(element.Host+":"+grepserver.PORT, serverInput, c)
+	membersToGrep := []string{}
+	for i, element := range membershipGroup {
+	  membersToGrep[i]= element.Host+":"+grepserver.PORT
 	}
-
+	serverResult := utils.SendToServer(membersToGrep, serverInput)
 	// Print results from server
-	for i, _ := range membershipGroup {
-		serverResult := <-c
-		fmt.Println(serverResult)
-		fmt.Printf("END----------%d\n", i)
+	for result := range serverResult {
+		fmt.Println(result)
+		fmt.Printf("END----------%d\n")
 	}
 }
 
@@ -301,7 +300,14 @@ func initDatas() {
 
 	currHost = utils.GetLocalIP()
 	initMG()
-
+	
+	timers[0] = time.NewTimer(ACK_TIMEOUT)
+	timers[1] = time.NewTimer(ACK_TIMEOUT)
+	timers[2] = time.NewTimer(ACK_TIMEOUT)
+	timers[0].Stop()
+	timers[1].Stop()
+	timers[2].Stop()
+	
 	absPath, _ := filepath.Abs(utils.LOG_FILE_GREP)
 	logfile_exists := 1
 	if _, err := os.Stat(absPath); os.IsNotExist(err) {
@@ -340,15 +346,9 @@ func resetCorrespondingTimers() {
 	resetTimerFlags[0] = 1
 	resetTimerFlags[1] = 1
 	resetTimerFlags[2] = 1
-	if(timers[0] != nil){
-	 timers[0].Reset(0)
-	}
-	if(timers[1] != nil){
-	 timers[1].Reset(0)
-	}
-	if(timers[2] != nil){
-	 timers[2].Reset(0)
-	}
+    timers[0].Reset(0)
+	timers[1].Reset(0)
+	timers[2].Reset(0)
 }
 
 func getIx() int {

@@ -1,31 +1,32 @@
 package utils
 
 import (
-	"os/exec"
-	"fmt"
 	"bytes"
+	"encoding/gob"
+	"fmt"
 	"io/ioutil"
 	"net"
-	"encoding/gob"
-	"time"
+	"os/exec"
 	"path/filepath"
+	"time"
 )
 
 const LOG_FILE_GREP = "src/logs/logfile.log"
+
 /*
  * Executes grep in unix shell
  */
 func ExecGrep(cmdArgs []string, machineName string) string {
-	
+
 	absPath, _ := filepath.Abs(LOG_FILE_GREP)
-	cmdArgs = append(cmdArgs, absPath) 
+	cmdArgs = append(cmdArgs, absPath)
 	fmt.Println("Complete String: ", cmdArgs)
-	
+
 	cmdOut, cmdErr := exec.Command("grep", cmdArgs...).CombinedOutput()
 
 	results := ""
 	//check if there is any error in our grep
-	if cmdErr != nil {
+	if cmdErr != nil && cmdErr.Error() != "exit status 1" {
 		fmt.Println("ERROR WHILE READING")
 		fmt.Println(cmdErr)
 	}
@@ -41,51 +42,60 @@ func ExecGrep(cmdArgs []string, machineName string) string {
 /*
  * Sends a message to a server, and returns the result into a channel
  */
-func SendToServer(ipAddr string, message []string, c chan string) {
-	
-	conn, err := net.DialTimeout("tcp", ipAddr, time.Duration(1)*time.Second)
-	if err != nil {
-		c <- err.Error()
-		return
-	}
-	
-	defer conn.Close()
-	
-	// convert string array to bytes
-    buf := &bytes.Buffer{}
-    gob.NewEncoder(buf).Encode(message[:])
-    messageBytes := buf.Bytes()  
-    // write bytes to the socket
-	_, err = conn.Write(messageBytes)
-	if err != nil {
-		c <- err.Error()
-		return
-	}
+func SendToServer(ipAddrs []string, message []string) <-chan string {
 
-	result, err := ioutil.ReadAll(conn)
-	if err != nil {
-		c <- err.Error()
-		return
-	}
+	out := make(chan string)
 
-	c <- string(result)
+	go func() {
+		for _, ip := range ipAddrs {
+			conn, err := net.DialTimeout("tcp", ip, time.Duration(1)*time.Second)
+			if err != nil {
+				out <- err.Error()
+				return
+			}
+
+			defer conn.Close()
+
+			// convert string array to bytes
+			buf := &bytes.Buffer{}
+			gob.NewEncoder(buf).Encode(message[:])
+			messageBytes := buf.Bytes()
+			// write bytes to the socket
+			_, err = conn.Write(messageBytes)
+			if err != nil {
+				out <- err.Error()
+				return
+			}
+
+			result, err := ioutil.ReadAll(conn)
+			if err != nil {
+				out <- err.Error()
+				return
+			}
+
+			out <- string(result)
+		}
+		close(out)
+	}()
+
+	return out
 }
 
-/*  
+/*
  * Returns the non loopback local IP of the host
  */
 func GetLocalIP() string {
-    addrs, err := net.InterfaceAddrs()
-    if err != nil {
-        return "Error getting IP address"
-    }
-    for _, address := range addrs {
-        // check the address type and if it is not a loopback the display it
-        if ipnet, ok := address.(*net.IPNet); ok && !ipnet.IP.IsLoopback() {
-            if ipnet.IP.To4() != nil {
-                return ipnet.IP.String()
-            }
-        }
-    }
-    return ""
+	addrs, err := net.InterfaceAddrs()
+	if err != nil {
+		return "Error getting IP address"
+	}
+	for _, address := range addrs {
+		// check the address type and if it is not a loopback the display it
+		if ipnet, ok := address.(*net.IPNet); ok && !ipnet.IP.IsLoopback() {
+			if ipnet.IP.To4() != nil {
+				return ipnet.IP.String()
+			}
+		}
+	}
+	return ""
 }
