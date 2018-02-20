@@ -306,6 +306,7 @@ func initDatas() {
 	logfile_exists := 1
 	if _, err := os.Stat(absPath); os.IsNotExist(err) {
 		logfile_exists = 0
+		os.Mkdir("src/logs", os.ModePerm)
 	}
 
 	logfile, _ := os.OpenFile(absPath, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
