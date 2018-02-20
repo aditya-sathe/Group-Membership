@@ -536,10 +536,10 @@ func sendToHosts(msg message, targetConnections []string) {
 	
 	for _, targetHost := range targetConnections {
 		if msg.Status == "Leave" || msg.Status == "Failed" {
-			fmt.Print("Propagating ")
-			fmt.Print(msg)
-			fmt.Print(" to :")
-			fmt.Println(targetHost)
+			infolog.Print("Propagating ")
+			infolog.Print(msg)
+			infolog.Print(" to :")
+			infolog.Println(targetHost)
 		}
 
 		remoteAddr, err := net.ResolveUDPAddr(UDP, targetHost + MSG_PORT)
