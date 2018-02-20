@@ -470,7 +470,7 @@ func broadcastGroup(node member) {
 	var compbuf bytes.Buffer
 	var nodebuf bytes.Buffer
 	
-	memberToAdd := make([]member,1)
+	memberToAdd := make([]member,0)
 	memberToAdd = append(memberToAdd,node)
 	
 	if err := gob.NewEncoder(&nodebuf).Encode(memberToAdd); err != nil {
