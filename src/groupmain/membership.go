@@ -139,12 +139,13 @@ func grepClient(reader *bufio.Reader) {
 	  membersToGrep = append(membersToGrep, element.Host+":"+grepserver.PORT)
 	}
 	tStart := time.Now()
-	serverResult := utils.SendToServer(membersToGrep, serverInput)
+	//serverResult := 
+	utils.SendToServer(membersToGrep, serverInput)
 	// Print results from server
-	for result := range serverResult {
-		fmt.Println(result)
-		fmt.Printf("END----------------------------------------------------------\n")
-	}
+	//for result := range serverResult {
+	//	fmt.Println(result)
+	//	fmt.Printf("END----------------------------------------------------------\n")
+	//}
 	tEnd := time.Now()
 	fmt.Println("Grep results took ", tEnd.Sub(tStart))
 }
