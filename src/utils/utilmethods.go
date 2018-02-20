@@ -48,15 +48,15 @@ func SendToServer(ipAddrs []string, message []string) <-chan string {
 	done := make(chan bool)
 	
 	for _, ip := range ipAddrs {
-		go func() {
-			conn, err := net.DialTimeout("tcp", ip, time.Duration(1)*time.Second)
+		go func(v string) {
+			conn, err := net.DialTimeout("tcp", v, time.Duration(1)*time.Second)
 			if err != nil {
 				out <- err.Error()
+				done <- true
 				return
 			}
 
 			defer conn.Close()
-
 			// convert string array to bytes
 			buf := &bytes.Buffer{}
 			gob.NewEncoder(buf).Encode(message[:])
@@ -65,18 +65,20 @@ func SendToServer(ipAddrs []string, message []string) <-chan string {
 			_, err = conn.Write(messageBytes)
 			if err != nil {
 				out <- err.Error()
+				done <- true
 				return
 			}
 
 			result, err := ioutil.ReadAll(conn)
 			if err != nil {
 				out <- err.Error()
+				done <- true
 				return
 			}
 
 			out <- string(result)
 			done <- true
-		}()
+		}(ip)
 	}
 	
 	for _ = range ipAddrs {
