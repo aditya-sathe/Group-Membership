@@ -42,10 +42,10 @@ func ExecGrep(cmdArgs []string, machineName string) string {
 /*
  * Sends a message to a server, and returns the result into a channel
  */
-func SendToServer(ipAddrs []string, message []string) <-chan string {
+func SendToServer(ipAddrs []string, message []string) {
 
 	out := make(chan string)
-	
+
 	for _, ip := range ipAddrs {
 		go func(v string) {
 			conn, err := net.DialTimeout("tcp", v, time.Duration(1)*time.Second)
@@ -75,14 +75,11 @@ func SendToServer(ipAddrs []string, message []string) <-chan string {
 			out <- string(result)
 		}(ip)
 	}
-	
+
 	for _ = range ipAddrs {
 		fmt.Println(<-out)
 		fmt.Printf("END----------------------------------------------------------\n")
 	}
-	close(out)
-
-	return out
 }
 
 /*
