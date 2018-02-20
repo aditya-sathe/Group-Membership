@@ -505,26 +505,27 @@ func sendToHosts(msg message, targetConnections []string) {
 		errlog.Println(err)
 	}
 
-	localAddr, err := net.ResolveUDPAddr(UDP, currHost+LCL_PORT)
+	localAddr, err := net.ResolveUDPAddr(UDP, currHost + LCL_PORT)
 	if err != nil {
 		fmt.Println("sendToHosts:problem while resolving localip")
 		errlog.Println(err)
 	}
-	for _, host := range targetConnections {
+	
+	for _, targetHost := range targetConnections {
 		if msg.Status == "Leave" || msg.Status == "Failed" {
 			fmt.Print("Propagating ")
 			fmt.Print(msg)
 			fmt.Print(" to :")
-			fmt.Println(host)
+			fmt.Println(targetHost)
 		}
 
-		serverAddr, err := net.ResolveUDPAddr(UDP, host+":10000")
+		remoteAddr, err := net.ResolveUDPAddr(UDP, targetHost + MSG_PORT)
 
 		if err != nil {
 			fmt.Println("sendToHosts:problem while resolving serverip")
 			errlog.Println(err)
 		}
-		conn, err := net.DialUDP(UDP, localAddr, serverAddr)
+		conn, err := net.DialUDP(UDP, localAddr, remoteAddr)
 
 		if err != nil {
 			fmt.Println("sendToHosts:problem while dial")
