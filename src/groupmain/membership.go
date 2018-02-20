@@ -146,7 +146,7 @@ func grepClient(reader *bufio.Reader) {
 		fmt.Printf("END----------------------------------------------------------\n")
 	}
 	tEnd := time.Now()
-	fmt.Println("Grep results took %d", tEnd.Sub(tStart))
+	fmt.Println("Grep results took ", tEnd.Sub(tStart))
 }
 
 /*
