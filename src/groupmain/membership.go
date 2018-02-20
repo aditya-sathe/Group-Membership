@@ -20,7 +20,7 @@ import (
 const (
 	GATEWAY        = "172.31.26.66" //Designated Gateway for the nodes to join
 	MIN_GROUP_SIZE = 4
-	ACK_TIMEOUT    = time.Second * 1
+	ACK_TIMEOUT    = time.Millisecond * 2500
 	SYN_TIMEOUT    = time.Second * 1
 	MSG_PORT       = ":50000"
 	GTW_PORT       = ":50001"
@@ -142,7 +142,7 @@ func grepClient(reader *bufio.Reader) {
 	// Print results from server
 	for result := range serverResult {
 		fmt.Println(result)
-		fmt.Printf("END----------%d\n")
+		fmt.Printf("END----------------------------------------------------------")
 	}
 }
 

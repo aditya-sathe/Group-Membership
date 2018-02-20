@@ -32,7 +32,7 @@ func ExecGrep(cmdArgs []string, machineName string) string {
 	}
 
 	if len(cmdOut) > 0 {
-		results = "Results from " + machineName + "------------------------------------ " + "\n" + string(cmdOut)
+		results = "Results from host [" + machineName + "]------------------------------------ " + "\n" + string(cmdOut)
 	} else {
 		results = "No matching patterns found in " + machineName
 	}
