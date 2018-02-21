@@ -20,13 +20,13 @@ import (
 const (
 	GATEWAY        = "172.31.26.66" //Designated Gateway for the nodes to join
 	MIN_GROUP_SIZE = 4
-	ACK_TIMEOUT    = time.Millisecond * 2500
+	ACK_TIMEOUT    = time.Millisecond * 2500  
 	SYN_TIMEOUT    = time.Second * 1
-	MSG_PORT       = ":50000"
-	GTW_PORT       = ":50001"
-	LCL_PORT       = ":0"
-	UDP            = "udp"
-	PACKET_LOSS    = 0
+	MSG_PORT       = ":50000" // Port for listening to messages
+	GTW_PORT       = ":50001" // Gateway port to listen
+	LCL_PORT       = ":0"  // Dummy local port
+	UDP            = "udp"  // UDP protocol identifier
+	PACKET_LOSS    = 0   // Packet loss simulation constant between 0-100
 )
 
 // Message structure
@@ -36,6 +36,7 @@ type message struct {
 	TimeStamp string
 }
 
+// Member structure
 type member struct {
 	Host      string
 	TimeStamp string
@@ -45,9 +46,9 @@ var (
 	currHost        string
 	partofGroup     int
 	mutex           = &sync.Mutex{}
-	timers          [3]*time.Timer
+	timers          [3]*time.Timer // Timer arrays for checking ACK timeouts
 	resetTimerFlags [3]int
-	membershipGroup = make([]member, 0)
+	membershipGroup = make([]member, 0)  // Array holds the membership list
 	packet_loss_cnt int
 )
 
@@ -58,7 +59,9 @@ var (
 	infolog  *log.Logger
 	emptylog *log.Logger
 )
-
+/*
+ * Main function entry point
+ */
 func main() {
 	initDatas()
 
@@ -74,7 +77,7 @@ func main() {
 }
 
 /*
- * Take input from user
+ * Take input from user from stdin and executes corresponding function
  */
 func takeUserInput() {
 
@@ -146,7 +149,7 @@ func grepClient(reader *bufio.Reader) {
 
 /*
  * Listen to messages on UDP port from other nodes and take appropriate action. Possible message types are
- * Join,Syn,ACK,Failed and Leave
+ * Join, SYN, ACK, Failed and Leave
  */
 func listenMessages() {
 	addr, err := net.ResolveUDPAddr(UDP, MSG_PORT)
@@ -203,7 +206,7 @@ func listenMessages() {
 }
 
 /*
- * Listen to membership list updates from Gateway node.
+ * Listen to membership list updates send from Gateway node.
  */
 func listenGateway() {
 	addr, err := net.ResolveUDPAddr(UDP, GTW_PORT)
@@ -249,7 +252,8 @@ func listenGateway() {
  * Minimum of 4 nodes are present in the group.If there is a timeout detected in a neighbour, then all the other timers are also reset in order
  * to take care of seriliazation of the EVENTS happening at  node.
  * Events could be 1.Leave message arriving at the node 2.Join broadcast arriving from GATEWAY 3.Simulataneos timeouts or individual
- * timeouts happening in any of the next three successor neightbours
+ * timeouts happening in any of the next three successor neightbours. The neighbour to check is based current host index i. 
+ * (i+1)%N, (i+2)%N, (i+3)%N. N=Total number of nodesin the memeber. This method is called for relativeindex 1,2 and 3 
  */
 func checkAck(relativeIx int) {
 
@@ -353,6 +357,9 @@ func resetCorrespondingTimers() {
 	timers[2].Reset(0)
 }
 
+/*
+ * Get index of current host
+ */
 func getIx() int {
 	for i, element := range membershipGroup {
 		if currHost == element.Host {
@@ -464,7 +471,8 @@ func spreadGroup(msg message) {
 }
 
 /*
- * This function is used by the GATEWAY to send an updated membershiplist after appending the new joinee in to the list.Port Number used is 5001
+ * This function is used by the GATEWAY to send an updated membershiplist after appending the new joinee in to the list.
+ * Port Number used is 5001
  */
 func broadcastGroup(node member) {
 	var compbuf bytes.Buffer

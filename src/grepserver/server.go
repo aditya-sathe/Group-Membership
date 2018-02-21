@@ -17,6 +17,9 @@ var(
 	localIp string
 )
 
+/*
+ *  Server to listen to grep requests from client
+ */
 func StartGrepServer() {
 
 	listener, err := net.Listen("tcp", ":" + PORT)
