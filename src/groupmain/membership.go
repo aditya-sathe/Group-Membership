@@ -201,6 +201,9 @@ func listenMessages() {
 			resetCorrespondingTimers()
 			spreadGroup(pkt)
 			mutex.Unlock()
+			infolog.Println("Processed [" + pkt.Status + "] Msg from " + pkt.Host + " TS - " + time.Now().Format(time.StampMicro))
+			fmt.Println("Processed [" + pkt.Status + "] Msg from " + pkt.Host + " TS - " + time.Now().Format(time.StampMicro))
+
 		}
 	}
 }
@@ -262,7 +265,6 @@ func checkAck(relativeIx int) {
 	}
 
 	host := membershipGroup[(getIx()+relativeIx)%len(membershipGroup)].Host
-	infolog.Println("Checking " + string(relativeIx) + ": " + host)
 
 	timers[relativeIx-1] = time.NewTimer(ACK_TIMEOUT)
 	<-timers[relativeIx-1].C
@@ -282,7 +284,6 @@ func checkAck(relativeIx int) {
 			timers[i].Reset(0)
 		}
 	} else {
-		fmt.Println(relativeIx)
 		resetTimerFlags[relativeIx-1] = 0
 	}
 
