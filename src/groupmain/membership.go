@@ -20,13 +20,13 @@ import (
 const (
 	GATEWAY        = "172.31.26.66" //Designated Gateway for the nodes to join
 	MIN_GROUP_SIZE = 4
-	ACK_TIMEOUT    = time.Millisecond * 2500  
+	ACK_TIMEOUT    = time.Millisecond * 2500
 	SYN_TIMEOUT    = time.Second * 1
 	MSG_PORT       = ":50000" // Port for listening to messages
 	GTW_PORT       = ":50001" // Gateway port to listen
-	LCL_PORT       = ":0"  // Dummy local port
-	UDP            = "udp"  // UDP protocol identifier
-	PACKET_LOSS    = 0   // Packet loss simulation constant between 0-100
+	LCL_PORT       = ":0"     // Dummy local port
+	UDP            = "udp"    // UDP protocol identifier
+	PACKET_LOSS    = 0        // Packet loss simulation constant between 0-100
 )
 
 // Message structure
@@ -48,7 +48,7 @@ var (
 	mutex           = &sync.Mutex{}
 	timers          [3]*time.Timer // Timer arrays for checking ACK timeouts
 	resetTimerFlags [3]int
-	membershipGroup = make([]member, 0)  // Array holds the membership list
+	membershipGroup = make([]member, 0) // Array holds the membership list
 	packet_loss_cnt int
 )
 
@@ -59,6 +59,7 @@ var (
 	infolog  *log.Logger
 	emptylog *log.Logger
 )
+
 /*
  * Main function entry point
  */
@@ -109,10 +110,9 @@ func takeUserInput() {
 			}
 		case "4":
 			if partofGroup == 1 {
-				fmt.Println("Leaving group")
+				fmt.Println("Leaving group TS - " + time.Now().Format(time.StampMicro))
 				exitGroup()
 				os.Exit(0)
-
 			} else {
 				fmt.Println("You are currently not connected to a group or You are master")
 			}
@@ -139,7 +139,7 @@ func grepClient(reader *bufio.Reader) {
 	// Send data to every server in membershipList
 	membersToGrep := make([]string, 0)
 	for _, element := range membershipGroup {
-	  membersToGrep = append(membersToGrep, element.Host+":"+grepserver.PORT)
+		membersToGrep = append(membersToGrep, element.Host+":"+grepserver.PORT)
 	}
 	tStart := time.Now()
 	utils.SendToServer(membersToGrep, serverInput)
@@ -201,9 +201,6 @@ func listenMessages() {
 			resetCorrespondingTimers()
 			spreadGroup(pkt)
 			mutex.Unlock()
-			infolog.Println("Processed [" + pkt.Status + "] Msg from " + pkt.Host + " TS - " + time.Now().Format(time.StampMicro))
-			fmt.Println("Processed [" + pkt.Status + "] Msg from " + pkt.Host + " TS - " + time.Now().Format(time.StampMicro))
-
 		}
 	}
 }
@@ -238,10 +235,10 @@ func listenGateway() {
 
 		mutex.Lock()
 		resetCorrespondingTimers()
-		if(len(list)==1){
+		if len(list) == 1 {
 			membershipGroup = append(membershipGroup, list[0])
-		}else{
-			membershipGroup = list		
+		} else {
+			membershipGroup = list
 		}
 		mutex.Unlock()
 
@@ -255,8 +252,8 @@ func listenGateway() {
  * Minimum of 4 nodes are present in the group.If there is a timeout detected in a neighbour, then all the other timers are also reset in order
  * to take care of seriliazation of the EVENTS happening at  node.
  * Events could be 1.Leave message arriving at the node 2.Join broadcast arriving from GATEWAY 3.Simulataneos timeouts or individual
- * timeouts happening in any of the next three successor neightbours. The neighbour to check is based current host index i. 
- * (i+1)%N, (i+2)%N, (i+3)%N. N=Total number of nodesin the memeber. This method is called for relativeindex 1,2 and 3 
+ * timeouts happening in any of the next three successor neightbours. The neighbour to check is based current host index i.
+ * (i+1)%N, (i+2)%N, (i+3)%N. N=Total number of nodesin the memeber. This method is called for relativeindex 1,2 and 3
  */
 func checkAck(relativeIx int) {
 
@@ -307,14 +304,14 @@ func initDatas() {
 
 	currHost = utils.GetLocalIP()
 	initMG()
-	
+
 	timers[0] = time.NewTimer(ACK_TIMEOUT)
 	timers[1] = time.NewTimer(ACK_TIMEOUT)
 	timers[2] = time.NewTimer(ACK_TIMEOUT)
 	timers[0].Stop()
 	timers[1].Stop()
 	timers[2].Stop()
-	
+
 	absPath, _ := filepath.Abs(utils.LOG_FILE_GREP)
 	logfile_exists := 1
 	if _, err := os.Stat(absPath); os.IsNotExist(err) {
@@ -343,8 +340,13 @@ func updateMG(Ix int, msg message) int {
 
 	if givenTime.After(localTime) {
 		membershipGroup = append(membershipGroup[:Ix], membershipGroup[Ix+1:]...)
+		ts := time.Now().Format(time.StampMicro)
+		fmt.Println("Processed ["+msg.Status+"] Msg from "+msg.Host+" TS - ", ts)
+		infolog.Println("Processed ["+msg.Status+"] Msg from "+msg.Host+" TS - ", ts)
 		return 1
 	} else {
+		fmt.Println("Timestamp of msg [" + msg.TimeStamp + "] older than my record [" + membershipGroup[Ix].TimeStamp + "]")
+		infolog.Println("Timestamp of msg [" + msg.TimeStamp + "] older than my record [" + membershipGroup[Ix].TimeStamp + "]")
 		return 0
 	}
 }
@@ -353,7 +355,7 @@ func resetCorrespondingTimers() {
 	resetTimerFlags[0] = 1
 	resetTimerFlags[1] = 1
 	resetTimerFlags[2] = 1
-    timers[0].Reset(0)
+	timers[0].Reset(0)
 	timers[1].Reset(0)
 	timers[2].Reset(0)
 }
@@ -478,20 +480,20 @@ func spreadGroup(msg message) {
 func broadcastGroup(node member) {
 	var compbuf bytes.Buffer
 	var nodebuf bytes.Buffer
-	
-	memberToAdd := make([]member,0)
-	memberToAdd = append(memberToAdd,node)
-	
+
+	memberToAdd := make([]member, 0)
+	memberToAdd = append(memberToAdd, node)
+
 	if err := gob.NewEncoder(&nodebuf).Encode(memberToAdd); err != nil {
 		fmt.Println("BroadcastGroup: not able to encode new node")
 		errlog.Println(err)
 	}
-		
+
 	if err := gob.NewEncoder(&compbuf).Encode(membershipGroup); err != nil {
 		fmt.Println("BroadcastGroup: not able to encode")
 		errlog.Println(err)
 	}
-	
+
 	for ix, element := range membershipGroup {
 		if element.Host != currHost {
 
@@ -512,12 +514,12 @@ func broadcastGroup(node member) {
 				fmt.Println("BroadcastGroup: not able to dial")
 				errlog.Println(err)
 			}
-			
-			if(element.Host == node.Host){
+
+			if element.Host == node.Host {
 				_, err = conn.Write(compbuf.Bytes())
-			}else{
+			} else {
 				_, err = conn.Write(nodebuf.Bytes())
-			}	
+			}
 			if err != nil {
 				fmt.Println("BroadcastGroup: not able to write to connection")
 				errlog.Println(err)
@@ -537,12 +539,12 @@ func sendToHosts(msg message, targetConnections []string) {
 		errlog.Println(err)
 	}
 
-	localAddr, err := net.ResolveUDPAddr(UDP, currHost + LCL_PORT)
+	localAddr, err := net.ResolveUDPAddr(UDP, currHost+LCL_PORT)
 	if err != nil {
 		fmt.Println("sendToHosts:problem while resolving localip")
 		errlog.Println(err)
 	}
-	
+
 	for _, targetHost := range targetConnections {
 		if msg.Status == "Leave" || msg.Status == "Failed" {
 			infolog.Print("Propagating ")
@@ -551,7 +553,7 @@ func sendToHosts(msg message, targetConnections []string) {
 			infolog.Println(targetHost)
 		}
 
-		remoteAddr, err := net.ResolveUDPAddr(UDP, targetHost + MSG_PORT)
+		remoteAddr, err := net.ResolveUDPAddr(UDP, targetHost+MSG_PORT)
 
 		if err != nil {
 			fmt.Println("sendToHosts:problem while resolving serverip")
